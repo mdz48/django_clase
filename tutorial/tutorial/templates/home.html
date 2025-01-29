@@ -1,0 +1,13 @@
+<h1>Hola mundo</h1>
+{% extends "base.html" %}
+{% block content %}
+    <p>Este es un ejemplo de una página web con Django.</p>
+    <p>{{saludo}}</p>
+    <ul>
+        {% for i in lista %}
+            <li>{{i.nombre }}  {{i.descripcion}}</li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'carrera' %}">Agregar carrera</a>
+{% endblock content %}
+

@@ -1,0 +1,17 @@
+<html>
+    <head>
+        {% load static %}
+        <title>Hola</title>
+        <link rel="stylesheet" href="{% static 'estilo.css' %}">
+    </head>
+    <body>
+        <header>
+            <a href="{% url 'home' %}">Home</a>
+            <a href="{% url 'about' %}">About</a>
+        </header>
+            {% block content %}
+            
+            {% endblock content %}
+            <img src="{% static '1.png' %}" alt="nombre"/>
+    </body>
+</html>
