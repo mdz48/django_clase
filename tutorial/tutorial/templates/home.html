@@ -7,6 +7,7 @@
         {% for i in lista %}
             <li>{{i.nombre }}  {{i.descripcion}} 
                 <a href="{% url 'editar_carrera' i.pk %}">Editar</a>
+                <a href="{% url 'eliminar_carrera' i.pk %}">Eliminar</a>
             </li>
         {% endfor %}
     </ul>

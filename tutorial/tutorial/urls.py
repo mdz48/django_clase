@@ -26,4 +26,5 @@ urlpatterns = [
     path('about/', AboutPageView.as_view(), name='about'),
     path('carrera/', CarreraCreateViewPage.as_view(), name='carrera'),
     path('carrera/editar/<int:pk>/', CarreraEditarViewPage.as_view(), name='editar_carrera'),
+    path('carrera/eliminar/<int:pk>/', view.CarreraDeleteViewPage.as_view(), name='eliminar_carrera'),
 ]
