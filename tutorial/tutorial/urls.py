@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from tutorial import view
-from tutorial.view import HomePageView, AboutPageView, CarreraCreateViewPage
+from tutorial.view import HomePageView, AboutPageView, CarreraCreateViewPage, CarreraEditarViewPage
 
 urlpatterns = [
     path('admin/', admin.site.urls),
@@ -25,5 +25,5 @@ urlpatterns = [
     path('', HomePageView.as_view(), name='home'),
     path('about/', AboutPageView.as_view(), name='about'),
     path('carrera/', CarreraCreateViewPage.as_view(), name='carrera'),
-    path('carrera/editar/<int:pk>/', CarreraCreateViewPage.as_view(), name='editar_carrera'),
+    path('carrera/editar/<int:pk>/', CarreraEditarViewPage.as_view(), name='editar_carrera'),
 ]

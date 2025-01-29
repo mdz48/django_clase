@@ -5,9 +5,10 @@
     <p>{{saludo}}</p>
     <ul>
         {% for i in lista %}
-            <li>{{i.nombre }}  {{i.descripcion}}</li>
+            <li>{{i.nombre }}  {{i.descripcion}} 
+                <a href="{% url 'editar_carrera' i.pk %}">Editar</a>
+            </li>
         {% endfor %}
     </ul>
     <a href="{% url 'carrera' %}">Agregar carrera</a>
 {% endblock content %}
-
