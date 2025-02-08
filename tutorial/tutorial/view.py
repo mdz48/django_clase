@@ -3,6 +3,8 @@ from django.views.generic import TemplateView
 from .models import Carrera
 from .views import FormCarrera
 from django.shortcuts import redirect, get_object_or_404
+from django.contrib.auth.decorators import login_required
+from django.utils.decorators import method_decorator
 
 class CarreraDeleteViewPage(TemplateView):
     def get(self, request, pk, *args, **kwargs):
@@ -49,15 +51,17 @@ class CarreraEditarViewPage(TemplateView):
 class HomePageView(TemplateView):
     model = Carrera
     template_name = 'home.html'
+    
+    @method_decorator(login_required)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["saludo"] = "Hola Mundo"
-        context["lista"]=self.model.objects.all()
-        
+        context["lista"] = self.model.objects.all()    
         return context
 
-    
-    
 class AboutPageView(TemplateView):
     template_name = 'about.html'
 
