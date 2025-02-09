@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from tutorial import view
-from tutorial.view import HomePageView, AboutPageView, CarreraCreateViewPage, CarreraEditarViewPage
+from tutorial.view import HomePageView, AboutPageView, CarreraCreateViewPage, CarreraEditarViewPage, AuthorCreateViewPage, AuthorDeleteViewPage, AuthorEditarViewPage, LibroCreateViewPage, LibroDeleteViewPage, LibroEditarViewPage, UserCreateViewPage, UserDeleteViewPage, UserEditarViewPage, PrestamoCreateViewPage, PrestamoDeleteViewPage, PrestamoEditarViewPage, CategoriaCreateViewPage, CategoriaDeleteViewPage, CategoriaEditarViewPage
 from django.contrib.auth import views as auth_views
 
 
@@ -31,4 +31,19 @@ urlpatterns = [
     path('carrera/eliminar/<int:pk>/', view.CarreraDeleteViewPage.as_view(), name='eliminar_carrera'),
     path('login/', auth_views.LoginView.as_view(template_name="login.html"), name='login'),
     path('logout/', auth_views.LogoutView.as_view(template_name="login.html"), name='logout'),
+    path('autor/', AuthorCreateViewPage.as_view(), name='autor'),
+    path('autor/eliminar/<int:pk>/', AuthorDeleteViewPage.as_view(), name='eliminar_autor'),
+    path('autor/editar/<int:pk>/', AuthorEditarViewPage.as_view(), name='editar_autor'),
+    path('libro/', LibroCreateViewPage.as_view(), name='libro'),
+    path('libro/eliminar/<int:pk>/', LibroDeleteViewPage.as_view(), name='eliminar_libro'),
+    path('libro/editar/<int:pk>/', LibroEditarViewPage.as_view(), name='editar_libro'),
+    path('usuario/', UserCreateViewPage.as_view(), name='usuario'),
+    path('usuario/eliminar/<int:pk>/', UserDeleteViewPage.as_view(), name='eliminar_usuario'),
+    path('usuario/editar/<int:pk>/', UserEditarViewPage.as_view(), name='editar_usuario'),
+    path('prestamo/', PrestamoCreateViewPage.as_view(), name='prestamo'),
+    path('prestamo/eliminar/<int:pk>/', PrestamoDeleteViewPage.as_view(), name='eliminar_prestamo'),
+    path('prestamo/editar/<int:pk>/', PrestamoEditarViewPage.as_view(), name='editar_prestamo'),
+    path('categoria/', CategoriaCreateViewPage.as_view(), name='categoria'),
+    path('categoria/eliminar/<int:pk>/', CategoriaDeleteViewPage.as_view(), name='eliminar_categoria'),
+    path('categoria/editar/<int:pk>/', CategoriaEditarViewPage.as_view(), name='editar_categoria'),
 ]

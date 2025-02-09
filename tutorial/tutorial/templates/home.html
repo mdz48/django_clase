@@ -4,13 +4,59 @@
     <p>Este es un ejemplo de una página web con Django.</p>
     <p>{{saludo}}</p>
     <ul>
+        <a href="{% url 'carrera' %}">Agregar carrera</a>
         {% for i in lista %}
             <li>{{i.nombre }}  {{i.descripcion}} 
                 <a href="{% url 'editar_carrera' i.pk %}">Editar</a>
                 <a href="{% url 'eliminar_carrera' i.pk %}">Eliminar</a>
             </li>
         {% endfor %}
+        <br>
+        <a href="{% url 'autor' %}">Agregar autor</a>
+        {% for i in autor %}
+            <li>{{i.nombre }}  {{i.apellido}} 
+               <a href="{% url 'editar_autor' i.pk %}">Editar</a>
+                <a href="{% url 'eliminar_autor' i.pk %}">Eliminar</a> 
+            </li>
+        {% endfor %}
+
+        <br>
+        <a href="{% url 'libro' %}">Agregar libro</a>
+        {% for i in libro %}
+            <li>{{i.nombre }}  {{i.descripcion}} 
+                <a href="{% url 'editar_libro' i.pk %}">Editar</a>
+                <a href="{% url 'eliminar_libro' i.pk %}">Eliminar</a>
+            </li>
+        {% endfor %}
+
+        <br>
+        <a href="{% url 'categoria' %}">Agregar categoria</a>
+        {% for i in categoria %}
+            <li>{{i.nombre }} 
+                <a href="{% url 'editar_categoria' i.pk %}">Editar</a>
+                <a href="{% url 'eliminar_categoria' i.pk %}">Eliminar</a>
+            </li>
+        {% endfor %}
+
+        <br>
+        {% comment %} Usuario {% endcomment %}
+        <a href="{% url 'usuario' %}">Agregar usuario</a>
+        {% for i in usuario %}
+            <li>{{i.username }}  {{i.email}} 
+                <a href="{% url 'editar_usuario' i.pk %}">Editar</a>
+                <a href="{% url 'eliminar_usuario' i.pk %}">Eliminar</a>
+            </li>
+        {% endfor %}
+
+        <br>
+        {% comment %} Prestamo {% endcomment %}
+        <a href="{% url 'prestamo' %}">Agregar prestamo</a>
+        {% for i in prestamo %}
+            <li>{{i.fecha_prestamo }}  {{i.fecha_devolucion}} 
+                <a href="{% url 'editar_prestamo' i.pk %}">Editar</a>
+                <a href="{% url 'eliminar_prestamo' i.pk %}">Eliminar</a>
+            </li>
+        {% endfor %}
     </ul>
-    <a href="{% url 'carrera' %}">Agregar carrera</a>
 {% endblock content %}
 
