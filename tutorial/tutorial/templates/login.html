@@ -1,4 +1,17 @@
 {% block content %}
+<style>
+    body {
+        background: linear-gradient(80deg, #40e0d0, #000000);  
+        background-size: cover;
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        color: white;
+        font-family: Arial, sans-serif;
+    }
+</style>
 {% if form.error %}
     <div>Error en el usuario o contraseña</div>
 {% endif %}

@@ -1,62 +1,100 @@
-<h1>Hola mundo</h1>
-{% extends "base.html" %}
 {% block content %}
-    <p>Este es un ejemplo de una página web con Django.</p>
-    <p>{{saludo}}</p>
-    <ul>
-        <a href="{% url 'carrera' %}">Agregar carrera</a>
-        {% for i in lista %}
-            <li>{{i.nombre }}  {{i.descripcion}} 
-                <a href="{% url 'editar_carrera' i.pk %}">Editar</a>
-                <a href="{% url 'eliminar_carrera' i.pk %}">Eliminar</a>
-            </li>
-        {% endfor %}
-        <br>
-        <a href="{% url 'autor' %}">Agregar autor</a>
-        {% for i in autor %}
-            <li>{{i.nombre }}  {{i.apellido}} 
-               <a href="{% url 'editar_autor' i.pk %}">Editar</a>
-                <a href="{% url 'eliminar_autor' i.pk %}">Eliminar</a> 
-            </li>
-        {% endfor %}
-
-        <br>
-        <a href="{% url 'libro' %}">Agregar libro</a>
-        {% for i in libro %}
-            <li>{{i.nombre }}  {{i.descripcion}} 
-                <a href="{% url 'editar_libro' i.pk %}">Editar</a>
-                <a href="{% url 'eliminar_libro' i.pk %}">Eliminar</a>
-            </li>
-        {% endfor %}
-
-        <br>
-        <a href="{% url 'categoria' %}">Agregar categoria</a>
-        {% for i in categoria %}
-            <li>{{i.nombre }} 
-                <a href="{% url 'editar_categoria' i.pk %}">Editar</a>
-                <a href="{% url 'eliminar_categoria' i.pk %}">Eliminar</a>
-            </li>
-        {% endfor %}
-
-        <br>
-        {% comment %} Usuario {% endcomment %}
-        <a href="{% url 'usuario' %}">Agregar usuario</a>
-        {% for i in usuario %}
-            <li>{{i.username }}  {{i.email}} 
-                <a href="{% url 'editar_usuario' i.pk %}">Editar</a>
-                <a href="{% url 'eliminar_usuario' i.pk %}">Eliminar</a>
-            </li>
-        {% endfor %}
-
-        <br>
-        {% comment %} Prestamo {% endcomment %}
-        <a href="{% url 'prestamo' %}">Agregar prestamo</a>
-        {% for i in prestamo %}
-            <li>{{i.fecha_prestamo }}  {{i.fecha_devolucion}} 
-                <a href="{% url 'editar_prestamo' i.pk %}">Editar</a>
-                <a href="{% url 'eliminar_prestamo' i.pk %}">Eliminar</a>
-            </li>
-        {% endfor %}
-    </ul>
+<style>
+    body {
+        background: linear-gradient(80deg, #40e0d0, #000000);  /* Degradado de turquesa a negro */
+        background-size: cover;
+        height: 100vh;
+        margin: 0;
+        display: flex;
+        flex-direction: column; /* Alineación en columnas */
+        justify-content: flex-start; /* Alineación a la izquierda */
+        align-items: flex-start; /* Alineación a la parte superior */
+        color: white;
+        font-family: Arial, sans-serif;
+        padding: 20px; /* Espaciado interno */
+    }
+    .navbar {
+        background-color: rgba(255, 255, 255, 0.2); /* Fondo semi-transparente */
+        padding: 10px;
+        border-radius: 5px;
+        margin-bottom: 20px;
+        width: 100%;
+    }
+    .navbar a {
+        color: white;
+        text-decoration: none;
+        margin-right: 15px;
+    }
+    button {
+        background-color: #feb47b; /* Color de fondo del botón */
+        color: #000; /* Color del texto del botón */
+        border: none;
+        border-radius: 5px;
+        padding: 10px 20px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    button:hover {
+        background-color: #ff7e5f; /* Color de fondo al pasar el mouse */
+    }
+    ul {
+        list-style-type: none; /* Sin viñetas */
+        padding: 0; /* Sin padding */
+    }
+</style>
+<div class="navbar">
+    <a href="{% url 'carrera' %}">Agregar carrera</a>
+    <a href="{% url 'autor' %}">Agregar autor</a>
+    <a href="{% url 'libro' %}">Agregar libro</a>
+    <a href="{% url 'categoria' %}">Agregar categoría</a>
+    <a href="{% url 'usuario' %}">Agregar usuario</a>
+    <a href="{% url 'prestamo' %}">Agregar préstamo</a>
+</div>
+<h1>Hola mundo</h1>
+<p>Este es un ejemplo de una página web con Django.</p>
+<p>{{saludo}}</p>
+<ul>
+    {% for i in lista %}
+        <li>{{i.nombre }}  {{i.descripcion}} 
+            <a href="{% url 'editar_carrera' i.pk %}">Editar</a>
+            <a href="{% url 'eliminar_carrera' i.pk %}">Eliminar</a>
+        </li>
+    {% endfor %}
+    <br>
+    {% for i in autor %}
+        <li>{{i.nombre }}  {{i.apellido}} 
+           <a href="{% url 'editar_autor' i.pk %}">Editar</a>
+            <a href="{% url 'eliminar_autor' i.pk %}">Eliminar</a> 
+        </li>
+    {% endfor %}
+    <br>
+    {% for i in libro %}
+        <li>{{i.nombre }}  {{i.descripcion}} 
+            <a href="{% url 'editar_libro' i.pk %}">Editar</a>
+            <a href="{% url 'eliminar_libro' i.pk %}">Eliminar</a>
+        </li>
+    {% endfor %}
+    <br>
+    {% for i in categoria %}
+        <li>{{i.nombre }} 
+            <a href="{% url 'editar_categoria' i.pk %}">Editar</a>
+            <a href="{% url 'eliminar_categoria' i.pk %}">Eliminar</a>
+        </li>
+    {% endfor %}
+    <br>
+    {% for i in usuario %}
+        <li>{{i.username }}  {{i.email}} 
+            <a href="{% url 'editar_usuario' i.pk %}">Editar</a>
+            <a href="{% url 'eliminar_usuario' i.pk %}">Eliminar</a>
+        </li>
+    {% endfor %}
+    <br>
+    {% for i in prestamo %}
+        <li>{{i.fecha_prestamo }}  {{i.fecha_devolucion}} 
+            <a href="{% url 'editar_prestamo' i.pk %}">Editar</a>
+            <a href="{% url 'eliminar_prestamo' i.pk %}">Eliminar</a>
+        </li>
+    {% endfor %}
+</ul>
 {% endblock content %}
 

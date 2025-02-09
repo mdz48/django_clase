@@ -4,20 +4,59 @@
     {% load static %}
     <title>Hola</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <style>
+        body {
+            background: linear-gradient(80deg, #40e0d0, #000000);  
+            background-size: cover;
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column; /* Alineación en columnas */
+            justify-content: flex-start; /* Alineación a la izquierda */
+            align-items: flex-start; /* Alineación a la parte superior */
+            color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px; /* Espaciado interno */
+        }
+        .navbar {
+            background-color: rgba(255, 255, 255, 0.2); /* Fondo semi-transparente */
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            width: 100%;
+        }
+        .navbar a {
+            color: white;
+            text-decoration: none;
+            margin-right: 15px;
+        }
+        button {
+            background-color: #feb47b; /* Color de fondo del botón */
+            color: #000; /* Color del texto del botón */
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #ff7e5f; /* Color de fondo al pasar el mouse */
+        }
+    </style>
     <!-- Aquí puedes incluir otros CSS del tema -->
 </head>
 <body>
     <header class="saaslauncher-header">
         <nav class="saaslauncher-navigation wp-block-navigation">
             <ul class="wp-block-navigation__container">
-                <li class="wp-block-navigation-item">
+                <!-- <li class="wp-block-navigation-item">
                     <a href="{% url 'home' %}" 
                        class="wp-block-navigation-item__content">Home</a>
                 </li>
                 <li class="wp-block-navigation-item has-child">
                     <a href="{% url 'about' %}" 
                        class="wp-block-navigation-item__content">About</a>
-                </li>
+                </li> -->
             </ul>
         </nav>
     </header>
