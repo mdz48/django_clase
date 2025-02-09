@@ -4,3 +4,4 @@ from .formLibro import FormLibro
 from .formUsuario import FormUsuario
 from .formPrestamo import FormPrestamo
 from .formCategoria import FormCategoria
+from .formRegistro import FormRegistro

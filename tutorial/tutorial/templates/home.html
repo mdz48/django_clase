@@ -41,7 +41,26 @@
         list-style-type: none; /* Sin viñetas */
         padding: 0; /* Sin padding */
     }
+    .logout-button {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        background-color: #ff4444;
+        color: white;
+        padding: 8px 15px;
+        border-radius: 5px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+    .logout-button:hover {
+        background-color: #cc0000;
+    }
 </style>
+
+{% if user.is_authenticated %}
+    <a href="{% url 'logout' %}" class="logout-button">Cerrar sesión</a>
+{% endif %}
+
 <div class="navbar">
     <a href="{% url 'carrera' %}">Agregar carrera</a>
     <a href="{% url 'autor' %}">Agregar autor</a>

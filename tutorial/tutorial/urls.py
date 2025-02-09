@@ -17,7 +17,7 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from tutorial import view
-from tutorial.view import HomePageView, AboutPageView, CarreraCreateViewPage, CarreraEditarViewPage, AuthorCreateViewPage, AuthorDeleteViewPage, AuthorEditarViewPage, LibroCreateViewPage, LibroDeleteViewPage, LibroEditarViewPage, UserCreateViewPage, UserDeleteViewPage, UserEditarViewPage, PrestamoCreateViewPage, PrestamoDeleteViewPage, PrestamoEditarViewPage, CategoriaCreateViewPage, CategoriaDeleteViewPage, CategoriaEditarViewPage
+from tutorial.view import HomePageView, AboutPageView, CarreraCreateViewPage, CarreraEditarViewPage, AuthorCreateViewPage, AuthorDeleteViewPage, AuthorEditarViewPage, LibroCreateViewPage, LibroDeleteViewPage, LibroEditarViewPage, UserCreateViewPage, UserDeleteViewPage, UserEditarViewPage, PrestamoCreateViewPage, PrestamoDeleteViewPage, PrestamoEditarViewPage, CategoriaCreateViewPage, CategoriaDeleteViewPage, CategoriaEditarViewPage, RegistroCreateViewPage
 from django.contrib.auth import views as auth_views
 
 
@@ -30,7 +30,10 @@ urlpatterns = [
     path('carrera/editar/<int:pk>/', CarreraEditarViewPage.as_view(), name='editar_carrera'),
     path('carrera/eliminar/<int:pk>/', view.CarreraDeleteViewPage.as_view(), name='eliminar_carrera'),
     path('login/', auth_views.LoginView.as_view(template_name="login.html"), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(template_name="login.html"), name='logout'),
+    path('logout/', auth_views.LogoutView.as_view(
+        template_name='login.html',
+        next_page='login'
+    ), name='logout'),  
     path('autor/', AuthorCreateViewPage.as_view(), name='autor'),
     path('autor/eliminar/<int:pk>/', AuthorDeleteViewPage.as_view(), name='eliminar_autor'),
     path('autor/editar/<int:pk>/', AuthorEditarViewPage.as_view(), name='editar_autor'),
@@ -46,4 +49,5 @@ urlpatterns = [
     path('categoria/', CategoriaCreateViewPage.as_view(), name='categoria'),
     path('categoria/eliminar/<int:pk>/', CategoriaDeleteViewPage.as_view(), name='eliminar_categoria'),
     path('categoria/editar/<int:pk>/', CategoriaEditarViewPage.as_view(), name='editar_categoria'),
+    path('registro/', RegistroCreateViewPage.as_view(), name='registro'),
 ]

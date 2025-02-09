@@ -11,21 +11,46 @@
         color: white;
         font-family: Arial, sans-serif;
     }
+    .login-container {
+        background: rgba(0, 0, 0, 0.6);
+        padding: 2rem;
+        border-radius: 10px;
+        width: 300px;
+    }
+    .register-link {
+        text-align: center;
+        margin-top: 1rem;
+    }
+    .register-link a {
+        color: #40e0d0;
+        text-decoration: none;
+    }
+    .register-link a:hover {
+        text-decoration: underline;
+    }
 </style>
-{% if form.error %}
-    <div>Error en el usuario o contraseña</div>
-{% endif %}
+
+<div class="login-container">
+    {% if form.error %}
+        <div>Error en el usuario o contraseña</div>
+    {% endif %}
+
+    <form method="post" action="{% url 'login'%}">
+        {% csrf_token %}
+        <div>
+            <label>Usuario</label>
+            {{ form.username }}
+        </div>
+        <div>
+            <label>Contraseña</label>
+            {{ form.password }}
+        </div>
+        <button type="submit">Ingresar</button>
+    </form>
+
+    <div class="register-link">
+        <p>¿No tienes cuenta? <a href="{% url 'registro' %}">Regístrate aquí</a></p>
+    </div>
+</div>
 {% endblock content %}
-<form method="post"  action="{% url 'login'%}">
-    {% csrf_token %}
-    <div>
-        <label>Usuario</label>
-        {{ form.username }}
-    </div>
-    <div>
-        <label>Contraseña</label>
-        {{ form.password }}
-    </div>
-    <button type="submit">Ingresar</button>
-</form>
 
