@@ -1,17 +1,33 @@
+<!DOCTYPE html>
 <html>
-    <head>
-        {% load static %}
-        <title>Hola</title>
-        <link rel="stylesheet" href="{% static 'estilo.css' %}">
-    </head>
-    <body>
-        <header>
-            <a href="{% url 'home' %}">Home</a>
-            <a href="{% url 'about' %}">About</a>
-        </header>
-            {% block content %}
-            
-            {% endblock content %}
-            <img src="{% static '1.png' %}" alt="nombre"/>
-    </body>
+<head>
+    {% load static %}
+    <title>Hola</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <!-- Aquí puedes incluir otros CSS del tema -->
+</head>
+<body>
+    <header class="saaslauncher-header">
+        <nav class="saaslauncher-navigation wp-block-navigation">
+            <ul class="wp-block-navigation__container">
+                <li class="wp-block-navigation-item">
+                    <a href="{% url 'home' %}" 
+                       class="wp-block-navigation-item__content">Home</a>
+                </li>
+                <li class="wp-block-navigation-item has-child">
+                    <a href="{% url 'about' %}" 
+                       class="wp-block-navigation-item__content">About</a>
+                </li>
+            </ul>
+        </nav>
+    </header>
+    {% block content %}
+    {% endblock content %}
+    <img src="{% static 'images/1.png' %}" alt="nombre"/>
+    
+    <!-- Incluir archivos JS del tema -->
+    <script src="{% static 'js/aos.js' %}"></script>
+    <script src="{% static 'js/saaslauncher-scripts.js' %}"></script>
+    <!-- Aquí puedes incluir otros JS del tema -->
+</body>
 </html>
