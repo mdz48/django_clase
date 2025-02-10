@@ -19,7 +19,6 @@
             padding: 20px; /* Espaciado interno */
         }
         .navbar {
-            background-color: rgba(255, 255, 255, 0.2); /* Fondo semi-transparente */
             padding: 10px;
             border-radius: 5px;
             margin-bottom: 20px;
@@ -42,6 +41,63 @@
         button:hover {
             background-color: #ff7e5f; /* Color de fondo al pasar el mouse */
         }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        .logout-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 5px;
+            text-decoration: none;
+            transition: background-color 0.3s;
+        }
+        a {
+            color: white;
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        a:hover {
+            color: #3A00AE;
+            transition: color 0.3s ease;
+        }
+        .section {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .wp-block-list {
+            list-style: none;
+            padding: 0;
+        }
+        .wp-block-list li {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin: 5px 0;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+        .wp-block-list li:hover {
+            background: rgba(0, 0, 0, 0.5);
+            transform: translateX(5px);
+        }
+        .action-links {
+            display: flex;
+            gap: 10px;
+        }
+        .action-links a {
+            padding: 5px 10px;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
     </style>
     <!-- Aquí puedes incluir otros CSS del tema -->
 </head>
@@ -49,6 +105,7 @@
     <header class="saaslauncher-header">
         <nav class="saaslauncher-navigation wp-block-navigation">
             <ul class="wp-block-navigation__container">
+                <!-- Menú de ejemplo -->
                 <!-- <li class="wp-block-navigation-item">
                     <a href="{% url 'home' %}" 
                        class="wp-block-navigation-item__content">Home</a>
@@ -60,9 +117,24 @@
             </ul>
         </nav>
     </header>
+
+    {% if user.is_authenticated %}
+        <a href="{% url 'logout' %}" class="logout-button">Cerrar sesión</a>
+    {% endif %}
+
+    <div class="navbar">
+        <a href="{% url 'home' %}">Inicio</a>
+        <a href="{% url 'carrera' %}">Agregar carrera</a>
+        <a href="{% url 'autor' %}">Agregar autor</a>
+        <a href="{% url 'libro' %}">Agregar libro</a>
+        <a href="{% url 'categoria' %}">Agregar categoría</a>
+        <a href="{% url 'usuario' %}">Agregar usuario</a>
+        <a href="{% url 'prestamo' %}">Agregar préstamo</a>
+    </div>
+
     {% block content %}
     {% endblock content %}
-    <img src="{% static 'images/1.png' %}" alt="nombre"/>
+    {% comment %} <img src="{% static 'images/1.png' %}" alt="nombre"/> {% endcomment %}
     
     <!-- Incluir archivos JS del tema -->
     <script src="{% static 'js/aos.js' %}"></script>
