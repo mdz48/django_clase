@@ -1,10 +1,27 @@
 from django.http import HttpResponse
 from django.views.generic import TemplateView
 from .models import Carrera, Autor, Libro, Prestamo, Usuario, Categoria
-from .views import FormCarrera, FormAutor, FormLibro, FormPrestamo, FormUsuario, FormCategoria
+from .views import FormCarrera, FormAutor, FormLibro, FormPrestamo, FormUsuario, FormCategoria, FormRegistro
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.utils.decorators import method_decorator
+
+class RegistroCreateViewPage(TemplateView):
+    model = Usuario
+    template_name = 'registro_form.html'
+    
+    def post(self, request, *args, **kwargs):
+        form = FormRegistro(request.POST)
+        if form.is_valid():
+            form.save()
+            return redirect('home')
+        else:
+            return self.render_to_response(self.get_context_data(form=form))	
+        
+    def get(self, request, *args, **kwargs):
+        form = FormRegistro()
+        context = { 'form': form }
+        return self.render_to_response(context)
 
 class CategoriaCreateViewPage(TemplateView):
     model = Categoria
