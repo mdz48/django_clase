@@ -29,11 +29,8 @@ urlpatterns = [
     path('carrera/', CarreraCreateViewPage.as_view(), name='carrera'),
     path('carrera/editar/<int:pk>/', CarreraEditarViewPage.as_view(), name='editar_carrera'),
     path('carrera/eliminar/<int:pk>/', view.CarreraDeleteViewPage.as_view(), name='eliminar_carrera'),
-    path('login/', auth_views.LoginView.as_view(template_name="login.html"), name='login'),
-    path('logout/', auth_views.LogoutView.as_view(
-        template_name='login.html',
-        next_page='login'
-    ), name='logout'),  
+    path('login/', auth_views.LoginView.as_view(template_name="login.html"), name='login'), 
+    path('logout/', auth_views.LoginView.as_view(template_name="login.html"), name='logout'),  
     path('autor/', AuthorCreateViewPage.as_view(), name='autor'),
     path('autor/eliminar/<int:pk>/', AuthorDeleteViewPage.as_view(), name='eliminar_autor'),
     path('autor/editar/<int:pk>/', AuthorEditarViewPage.as_view(), name='editar_autor'),
