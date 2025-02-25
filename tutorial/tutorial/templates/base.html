@@ -98,6 +98,38 @@
             border-radius: 3px;
             transition: all 0.3s ease;
         }
+        form {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 25px;  /* Aumentado el padding general */
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        form p {
+            margin-bottom: 15px;
+            padding-right: 15px;  /* Añadido padding derecho */
+        }
+        
+        form label {
+            display: block;
+            margin-bottom: 8px;  /* Aumentado el margen inferior */
+            color: white;
+            padding-right: 15px;  /* Añadido padding derecho */
+        }
+        
+        form input, form select, form textarea {
+            width: calc(100% - 30px);  /* Ajustado el ancho considerando el padding */
+            padding: 10px 15px;  /* Añadido padding horizontal */
+            margin-top: 5px;
+            border-radius: 5px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            transition: all 0.3s ease;
+        }
     </style>
     <!-- Aquí puedes incluir otros CSS del tema -->
 </head>
@@ -124,7 +156,6 @@
 
     <div class="navbar">
         <a href="{% url 'home' %}">Inicio</a>
-        <a href="{% url 'carrera' %}">Agregar carrera</a>
         <a href="{% url 'autor' %}">Agregar autor</a>
         <a href="{% url 'libro' %}">Agregar libro</a>
         <a href="{% url 'categoria' %}">Agregar categoría</a>

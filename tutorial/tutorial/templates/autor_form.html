@@ -1,9 +1,14 @@
 {% extends "base.html" %}
 {% block content %}
 <h1>Formulario de autor</h1>
+<p>hola usuario {{ user_name }}</p>
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
+    {% if has_perm %}
     <button type="submit">Guardar</button>
+    {% else %}
+    <button type="submit" disabled>No es admin</button>
+    {% endif %}
 </form>
 {% endblock content %}

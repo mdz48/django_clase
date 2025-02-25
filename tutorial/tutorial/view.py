@@ -3,7 +3,7 @@ from django.views.generic import TemplateView
 from .models import Carrera, Autor, Libro, Prestamo, Usuario, Categoria
 from .views import FormCarrera, FormAutor, FormLibro, FormPrestamo, FormUsuario, FormCategoria, FormRegistro
 from django.shortcuts import redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required
+from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
 
 class RegistroCreateViewPage(TemplateView):
@@ -174,7 +174,6 @@ class LibroEditarViewPage(TemplateView):
         libro = get_object_or_404(Libro, pk=pk)
         form = FormLibro(instance=libro)
         return self.render_to_response({'form': form})
-    
     def post(self, request, pk, *args, **kwargs):
         libro = get_object_or_404(Libro, pk=pk)
         form = FormLibro(request.POST, instance=libro)
@@ -183,7 +182,8 @@ class LibroEditarViewPage(TemplateView):
             return redirect('home')
         else:
             return self.render_to_response({'form': form})
-
+        
+@method_decorator(permission_required('tutorial.add_autor', login_url='home', raise_exception=True), name='dispatch')
 class AuthorCreateViewPage(TemplateView):
     model = Autor
     template_name = 'autor_form.html'
@@ -213,8 +213,10 @@ class AuthorEditarViewPage(TemplateView):
     def get(self, request, pk, *args, **kwargs):
         autor = get_object_or_404(Autor, pk=pk)
         form = FormAutor(instance=autor)
-        return self.render_to_response({'form': form})
-    
+        return self.render_to_response({'form': form, 
+                                        'has_perm': request.user.has_perm('tutorial.change_autor'),
+                                        'user_name' : request.user.username})
+    @method_decorator(permission_required('tutorial.change_autor', login_url='home', raise_exception=True), name='dispatch')
     def post(self, request, pk, *args, **kwargs):
         autor = get_object_or_404(Autor, pk=pk)
         form = FormAutor(request.POST, instance=autor)
