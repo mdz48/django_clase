@@ -226,10 +226,13 @@
 <script>
     console.log('ws://' + window.location.host + '/ws/test/ \n');
     const socket = new WebSocket('ws://' + window.location.host + '/ws/test/');
-    socket.onmessage = function(e) {
-        const data = JSON.parse(e.data);
-        console.log('ws://' + window.location.host + '/ws/test/ \n' + data.message);
-        };
-</script>
+
+    socket.onmessage = function(event) {
+      const data = JSON.parse(event.data);
+      data.message.forEach(element => {
+        console.log('ws://' + window.location.host +  '/ws/test/ \n' + element.nombre);
+      });
+    }
+  </script>
 {% endblock content %}
 
