@@ -224,15 +224,125 @@
     </div>
 </div>
 <script>
-    console.log('ws://' + window.location.host + '/ws/test/ \n');
-    const socket = new WebSocket('ws://' + window.location.host + '/ws/test/');
+    // Configuración
+    const WS_URL = 'ws://' + window.location.host + '/ws/test/';
+    const RECONNECT_TIMEOUT = 3000; // Tiempo en ms para intentar reconectar
+    const HEARTBEAT_INTERVAL = 30000; // Cada 30 segundos enviamos un ping
 
-    socket.onmessage = function(event) {
-      const data = JSON.parse(event.data);
-      data.message.forEach(element => {
-        console.log('ws://' + window.location.host +  '/ws/test/ \n' + element.nombre);
-      });
+    let socket;
+    let heartbeatTimer;
+    let reconnectTimer;
+    let isConnecting = false;
+    
+    // Función para conectar el WebSocket
+    function connectWebSocket() {
+        if (isConnecting) return;
+        
+        isConnecting = true;
+        clearTimeout(reconnectTimer);
+        
+        console.log('Conectando a WebSocket: ' + WS_URL);
+        socket = new WebSocket(WS_URL);
+        
+        socket.onopen = function() {
+            console.log('WebSocket conectado');
+            isConnecting = false;
+            
+            // Iniciar heartbeat para mantener la conexión viva
+            startHeartbeat();
+        };
+        
+        socket.onmessage = function(event) {
+            // Procesar el mensaje recibido
+            try {
+                const data = JSON.parse(event.data);
+                
+                // Manejar datos iniciales de carrera
+                if (data.message && Array.isArray(data.message)) {
+                    data.message.forEach(element => {
+                        console.log('Dato recibido: ' + element.nombre);
+                    });
+                }
+                
+                // AÑADE ESTO - Manejar notificaciones de eventos
+                if (data.event_type === "libro_creado") {
+                    console.log('🎉 NUEVO LIBRO CREADO!');
+                    console.log(`Título: ${data.libro.titulo}`);
+                    console.log(`Autor: ${data.libro.autor}`);
+                    console.log(`Fecha: ${data.libro.fecha}`);
+                    
+                    // Mostrar notificación visual
+                    showNotification('Nuevo libro', `Se ha añadido "${data.libro.titulo}" a la biblioteca`);
+                }
+            } catch (error) {
+                console.error('Error procesando mensaje:', error);
+            }
+        };
+        
+        // AÑADE ESTA FUNCIÓN al final del script
+        function showNotification(title, message) {
+            // Crear elemento de notificación
+            const notification = document.createElement('div');
+            notification.className = 'websocket-notification';
+            notification.style.position = 'fixed';
+            notification.style.bottom = '20px';
+            notification.style.right = '20px';
+            notification.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+            notification.style.color = 'white';
+            notification.style.padding = '15px';
+            notification.style.borderRadius = '5px';
+            notification.style.zIndex = '1000';
+            notification.style.maxWidth = '300px';
+            notification.innerHTML = `<strong>${title}</strong><br>${message}`;
+            
+            // Añadir al DOM
+            document.body.appendChild(notification);
+            
+            // Eliminar después de 5 segundos
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                notification.style.transition = 'opacity 0.5s';
+                setTimeout(() => {
+                    document.body.removeChild(notification);
+                }, 500);
+            }, 5000);
+        }
+        
+        socket.onclose = function(event) {
+            console.log('WebSocket desconectado - Código:', event.code);
+            isConnecting = false;
+            clearInterval(heartbeatTimer);
+            
+            // Reconectar automáticamente
+            reconnectTimer = setTimeout(connectWebSocket, RECONNECT_TIMEOUT);
+        };
+        
+        socket.onerror = function(error) {
+            console.error('Error de WebSocket:', error);
+        };
     }
-  </script>
+    
+    // Función para enviar heartbeats periódicos
+    function startHeartbeat() {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = setInterval(function() {
+            if (socket.readyState === WebSocket.OPEN) {
+                console.log('Enviando heartbeat...');
+                socket.send(JSON.stringify({"type": "heartbeat"}));
+            }
+        }, HEARTBEAT_INTERVAL);
+    }
+    
+    // Iniciar conexión al cargar la página
+    connectWebSocket();
+    
+    // Reconectar cuando la página vuelve a tener foco
+    window.addEventListener('focus', function() {
+        if (socket.readyState !== WebSocket.OPEN && !isConnecting) {
+            console.log('Página enfocada, reconectando WebSocket...');
+            connectWebSocket();
+        }
+    });
+</script>
 {% endblock content %}
 

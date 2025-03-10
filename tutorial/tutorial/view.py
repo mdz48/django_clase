@@ -5,6 +5,9 @@ from .views import FormCarrera, FormAutor, FormLibro, FormPrestamo, FormUsuario,
 from django.shortcuts import redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, permission_required
 from django.utils.decorators import method_decorator
+from channels.layers import get_channel_layer
+from asgiref.sync import async_to_sync
+
 
 class RegistroCreateViewPage(TemplateView):
     model = Usuario
@@ -151,7 +154,24 @@ class LibroCreateViewPage(TemplateView):
     def post(self, request, *args, **kwargs):
         form = FormLibro(request.POST)
         if form.is_valid():
-            form.save()
+            libro = form.save()
+            
+            # AÑADE ESTE CÓDIGO - Enviar notificación WebSocket
+            channel_layer = get_channel_layer()
+            async_to_sync(channel_layer.group_send)(
+                "biblioteca_updates",
+                {
+                    "type": "biblioteca_update",
+                    "event_type": "libro_creado",
+                    "libro": {
+                        "id": libro.id,
+                        "titulo": libro.titulo,
+                        "autor": str(libro.autor) if libro.autor else "Sin autor",
+                        "fecha": str(libro.fecha_publicacion)
+                    }
+                }
+            )
+            
             return redirect('home')
         else:
             return self.render_to_response(self.get_context_data(form=form))	
@@ -183,7 +203,7 @@ class LibroEditarViewPage(TemplateView):
         else:
             return self.render_to_response({'form': form})
         
-@method_decorator(permission_required('tutorial.add_autor', login_url='home', raise_exception=True), name='dispatch')
+# @method_decorator(permission_required('tutorial.add_autor', login_url='home', raise_exception=True), name='dispatch')
 class AuthorCreateViewPage(TemplateView):
     model = Autor
     template_name = 'autor_form.html'

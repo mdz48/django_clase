@@ -24,8 +24,7 @@ SECRET_KEY = 'django-insecure-qbbf$xf6$3tv&jjp1vk8h)s#6+n85k(hijc*78gc0ip3(mamw@
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 # Authentication settings
 LOGIN_REDIRECT_URL = 'home'
@@ -77,7 +76,7 @@ TEMPLATES = [
 WSGI_APPLICATION = 'tutorial.wsgi.application'
 ASGI_APPLICATION = 'tutorial.asgi.application'
 
-CHANELS_LAYERS = {
+CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
     },
