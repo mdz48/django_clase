@@ -12,6 +12,25 @@
     </div>
     
     <div class="panels-container">
+        <!-- Panel para crear nueva carrera -->
+        <div class="panel create-panel">
+            <h2>Crear nueva carrera</h2>
+            <form id="create-carrera-form" class="carrera-form">
+                <div class="form-group">
+                    <label for="new-carrera-nombre">Nombre:</label>
+                    <input type="text" id="new-carrera-nombre" name="nombre" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="new-carrera-descripcion">Descripción:</label>
+                    <textarea id="new-carrera-descripcion" name="descripcion" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="wp-block-button__link">Guardar</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Panel para mostrar carreras -->
         <div class="panel carrera-panel">
             <h2>Carreras Remotas</h2>
             <ul id="remote-carreras" class="wp-block-list is-style-list-style-check-circle">
@@ -20,6 +39,41 @@
             <div class="actions-panel">
                 <button id="btn-reconnect-carreras" class="wp-block-button__link">Reconectar</button>
                 <button id="btn-refresh-carreras" class="wp-block-button__link">Actualizar datos</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal para editar carrera -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Editar Carrera</h2>
+            <form id="edit-carrera-form" class="carrera-form">
+                <input type="hidden" id="edit-carrera-id" name="id">
+                <div class="form-group">
+                    <label for="edit-carrera-nombre">Nombre:</label>
+                    <input type="text" id="edit-carrera-nombre" name="nombre" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="edit-carrera-descripcion">Descripción:</label>
+                    <textarea id="edit-carrera-descripcion" name="descripcion" class="form-control" rows="3"></textarea>
+                </div>
+                <div class="form-actions">
+                    <button type="submit" class="wp-block-button__link">Actualizar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal de confirmación para eliminar -->
+    <div id="delete-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Confirmar eliminación</h2>
+            <p>¿Estás seguro de que deseas eliminar la carrera <strong id="delete-carrera-nombre"></strong>?</p>
+            <div class="form-actions">
+                <button id="confirm-delete" class="wp-block-button__link delete">Eliminar</button>
+                <button id="cancel-delete" class="wp-block-button__link cancel">Cancelar</button>
             </div>
         </div>
     </div>
@@ -43,6 +97,19 @@
     const carrerasStatus = document.getElementById('carreras-status');
     const btnReconnectCarreras = document.getElementById('btn-reconnect-carreras');
     const btnRefreshCarreras = document.getElementById('btn-refresh-carreras');
+    
+    // Elementos de modales
+    const editModal = document.getElementById('edit-modal');
+    const deleteModal = document.getElementById('delete-modal');
+    const createForm = document.getElementById('create-carrera-form');
+    const editForm = document.getElementById('edit-carrera-form');
+    const closeEditModal = editModal.querySelector('.close');
+    const closeDeleteModal = deleteModal.querySelector('.close');
+    const cancelDeleteBtn = document.getElementById('cancel-delete');
+    const confirmDeleteBtn = document.getElementById('confirm-delete');
+    
+    // Variables para eliminar
+    let carreraToDelete = null;
     
     // FUNCIONES PARA EL WEBSOCKET DE CARRERAS
     
@@ -84,8 +151,21 @@
                 if (data.type === 'carrera_list' && data.message && Array.isArray(data.message)) {
                     renderCarrerasData(data.message);
                     console.log('Lista de carreras recibida:', data.message);
-                } else if (data.error) {
-                    showNotification("Error en Carreras", data.error);
+                } 
+                // Manejar respuestas de operaciones CRUD
+                else if (data.type === 'carrera_actualizada' || data.message === 'Nueva carrera creada' || 
+                         data.message === 'Carrera actualizada' || data.message === 'Carrera eliminada') {
+                    showNotification("Éxito", data.message);
+                    
+                    // Si la operación fue exitosa, actualizar la lista
+                    requestCarrerasData();
+                    
+                    // Cerrar modales si están abiertos
+                    editModal.style.display = 'none';
+                    deleteModal.style.display = 'none';
+                }
+                else if (data.error) {
+                    showNotification("Error", data.error);
                 }
             } catch (error) {
                 console.error('Error procesando mensaje de carreras:', error);
@@ -110,7 +190,7 @@
     function startCarrerasHeartbeat() {
         clearInterval(carrerasHeartbeatTimer);
         carrerasHeartbeatTimer = setInterval(function() {
-            if (carrerasSocket.readyState === WebSocket.OPEN) {
+            if (carrerasSocket && carrerasSocket.readyState === WebSocket.OPEN) {
                 carrerasSocket.send(JSON.stringify({
                     "type": "heartbeat",
                     "client_timestamp": new Date().toISOString()
@@ -127,7 +207,6 @@
     
     function requestCarrerasData() {
         if (carrerasSocket && carrerasSocket.readyState === WebSocket.OPEN) {
-            // Nota que esto podría necesitar ajustes dependiendo de lo que espera el servidor remoto
             carrerasSocket.send(JSON.stringify({
                 "type": "request_data",
                 "entity": "carreras"
@@ -136,6 +215,68 @@
             showNotification("Error", "No hay conexión con el servidor de carreras");
             connectCarrerasWebSocket(); // Intentar reconectar automáticamente
         }
+    }
+    
+    // NUEVAS FUNCIONES CRUD PARA CARRERAS
+    
+    function createCarrera(nombre, descripcion) {
+        if (carrerasSocket && carrerasSocket.readyState === WebSocket.OPEN) {
+            carrerasSocket.send(JSON.stringify({
+                "type": "crear_carrera",
+                "nombre": nombre,
+                "descripcion": descripcion
+            }));
+        } else {
+            showNotification("Error", "No hay conexión con el servidor de carreras");
+            connectCarrerasWebSocket();
+        }
+    }
+    
+    function editCarrera(id, nombre, descripcion) {
+        if (carrerasSocket && carrerasSocket.readyState === WebSocket.OPEN) {
+            carrerasSocket.send(JSON.stringify({
+                "type": "editar_carrera",
+                "id": id,
+                "nombre": nombre,
+                "descripcion": descripcion
+            }));
+        } else {
+            showNotification("Error", "No hay conexión con el servidor de carreras");
+            connectCarrerasWebSocket();
+        }
+    }
+    
+    function deleteCarrera(id) {
+        if (carrerasSocket && carrerasSocket.readyState === WebSocket.OPEN) {
+            carrerasSocket.send(JSON.stringify({
+                "type": "eliminar_carrera",
+                "id": id
+            }));
+        } else {
+            showNotification("Error", "No hay conexión con el servidor de carreras");
+            connectCarrerasWebSocket();
+        }
+    }
+    
+    function showEditModal(carrera) {
+        // Rellenar el formulario con los datos de la carrera
+        document.getElementById('edit-carrera-id').value = carrera.id;
+        document.getElementById('edit-carrera-nombre').value = carrera.nombre || carrera.name || '';
+        document.getElementById('edit-carrera-descripcion').value = carrera.descripcion || carrera.description || '';
+        
+        // Mostrar el modal
+        editModal.style.display = 'block';
+    }
+    
+    function showDeleteModal(carrera) {
+        // Guardar referencia a la carrera que se eliminará
+        carreraToDelete = carrera;
+        
+        // Mostrar el nombre en el modal de confirmación
+        document.getElementById('delete-carrera-nombre').textContent = carrera.nombre || carrera.name || 'esta carrera';
+        
+        // Mostrar el modal
+        deleteModal.style.display = 'block';
     }
     
     function renderCarrerasData(items) {
@@ -164,6 +305,28 @@
             if (descripcion) {
                 li.innerHTML += `<div class="carrera-descripcion">${descripcion}</div>`;
             }
+            
+            // Añadir botones de acción
+            const actionsDiv = document.createElement('div');
+            actionsDiv.className = 'item-actions';
+            
+            const editBtn = document.createElement('button');
+            editBtn.textContent = 'Editar';
+            editBtn.className = 'action-btn edit';
+            editBtn.onclick = function() {
+                showEditModal(item);
+            };
+            
+            const deleteBtn = document.createElement('button');
+            deleteBtn.textContent = 'Eliminar';
+            deleteBtn.className = 'action-btn delete';
+            deleteBtn.onclick = function() {
+                showDeleteModal(item);
+            };
+            
+            actionsDiv.appendChild(editBtn);
+            actionsDiv.appendChild(deleteBtn);
+            li.appendChild(actionsDiv);
             
             remoteCarrerasList.appendChild(li);
         });
@@ -201,6 +364,7 @@
     
     // EVENT LISTENERS
     
+    // Botones de reconexión y actualización
     btnReconnectCarreras.addEventListener('click', function() {
         if (carrerasSocket) carrerasSocket.close();
         connectCarrerasWebSocket();
@@ -208,6 +372,62 @@
     
     btnRefreshCarreras.addEventListener('click', function() {
         requestCarrerasData();
+    });
+    
+    // Formulario para crear carrera
+    createForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const nombre = document.getElementById('new-carrera-nombre').value.trim();
+        const descripcion = document.getElementById('new-carrera-descripcion').value.trim();
+        
+        if (nombre) {
+            createCarrera(nombre, descripcion);
+            // Limpiar formulario
+            createForm.reset();
+        }
+    });
+    
+    // Formulario para editar carrera
+    editForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = document.getElementById('edit-carrera-id').value;
+        const nombre = document.getElementById('edit-carrera-nombre').value.trim();
+        const descripcion = document.getElementById('edit-carrera-descripcion').value.trim();
+        
+        if (id && nombre) {
+            editCarrera(id, nombre, descripcion);
+        }
+    });
+    
+    // Cerrar modales
+    closeEditModal.addEventListener('click', function() {
+        editModal.style.display = 'none';
+    });
+    
+    closeDeleteModal.addEventListener('click', function() {
+        deleteModal.style.display = 'none';
+    });
+    
+    cancelDeleteBtn.addEventListener('click', function() {
+        deleteModal.style.display = 'none';
+    });
+    
+    // Confirmar eliminación
+    confirmDeleteBtn.addEventListener('click', function() {
+        if (carreraToDelete && carreraToDelete.id) {
+            deleteCarrera(carreraToDelete.id);
+            // El modal se cerrará cuando se reciba la confirmación del servidor
+        }
+    });
+    
+    // Cerrar modales al hacer clic fuera
+    window.addEventListener('click', function(event) {
+        if (event.target === editModal) {
+            editModal.style.display = 'none';
+        }
+        if (event.target === deleteModal) {
+            deleteModal.style.display = 'none';
+        }
     });
     
     // INICIAR CONEXIONES
@@ -268,6 +488,14 @@
         box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
     
+    .create-panel {
+        flex: 0 0 35%;
+    }
+    
+    .carrera-panel {
+        flex: 0 0 60%;
+    }
+    
     .actions-panel {
         display: flex;
         gap: 10px;
@@ -276,11 +504,16 @@
     
     #remote-carreras {
         min-height: 100px;
+        max-height: 500px;
+        overflow-y: auto;
     }
     
     .remote-item {
-        padding: 10px 0;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        padding: 15px;
+        margin-bottom: 10px;
+        border-radius: 5px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-left: 3px solid #66bb6a;
     }
     
     .carrera-header {
@@ -312,6 +545,119 @@
     .loading-placeholder {
         color: rgba(255, 255, 255, 0.5);
         font-style: italic;
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 8px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        background-color: rgba(255, 255, 255, 0.9);
+    }
+    
+    .form-actions {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+    }
+    
+    .item-actions {
+        display: flex;
+        gap: 10px;
+        margin-top: 10px;
+        justify-content: flex-end;
+    }
+    
+    .action-btn {
+        padding: 5px 10px;
+        border-radius: 4px;
+        border: none;
+        cursor: pointer;
+        font-size: 12px;
+        transition: all 0.3s;
+    }
+    
+    .action-btn.edit {
+        background-color: #2196F3;
+        color: white;
+    }
+    
+    .action-btn.delete {
+        background-color: #F44336;
+        color: white;
+    }
+    
+    .action-btn:hover {
+        opacity: 0.9;
+        transform: translateY(-2px);
+    }
+    
+    /* Modal styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 999;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.6);
+    }
+    
+    .modal-content {
+        position: relative;
+        background-color: #343a40;
+        margin: 10% auto;
+        padding: 20px;
+        width: 50%;
+        max-width: 500px;
+        border-radius: 5px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+        animation: modalAppear 0.3s ease;
+        color: #fff;
+    }
+    
+    @keyframes modalAppear {
+        from {
+            opacity: 0;
+            transform: translateY(-20px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .close {
+        position: absolute;
+        right: 15px;
+        top: 10px;
+        font-size: 28px;
+        font-weight: bold;
+        color: #aaa;
+        cursor: pointer;
+    }
+    
+    .close:hover {
+        color: white;
+    }
+    
+    .wp-block-button__link.delete {
+        background-color: #F44336;
+    }
+    
+    .wp-block-button__link.cancel {
+        background-color: #757575;
     }
 </style>
 {% endblock %}
