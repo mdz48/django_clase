@@ -317,3 +317,22 @@ class AboutPageView(TemplateView):
 def index(request):
     return HttpResponse("Hello, world. You're at the tutorial index. CTM")
 
+class RemoteCarrerasView(TemplateView):
+    """Vista para mostrar los datos remotos de carreras"""
+    template_name = 'remote_carreras.html'
+    
+    def get(self, request, *args, **kwargs):
+        return self.render_to_response({})
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Puedes pasar aquí cualquier dato adicional que necesites en la plantilla
+        return context
+
+class MultipleRemoteDataView(TemplateView):
+    """Vista para mostrar los datos remotos de carreras y películas"""
+    template_name = 'multiple_remote_data.html'
+    
+    def get(self, request, *args, **kwargs):
+        return self.render_to_response({})
+

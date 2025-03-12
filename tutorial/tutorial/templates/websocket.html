@@ -1,0 +1,249 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container saaslauncher-fade-up" data-aos="fade-up">
+    <h1>Datos Remotos</h1>
+    
+    <div class="remote-status-indicator">
+        <span id="connection-status" class="badge">Desconectado</span>
+    </div>
+    
+    <div class="panel">
+        <h2>Carreras Remotas</h2>
+        <ul id="remote-carreras" class="wp-block-list is-style-list-style-check-circle">
+            <!-- Los datos se cargarán dinámicamente aquí -->
+            <li class="loading-placeholder">Conectando con el servidor remoto...</li>
+        </ul>
+    </div>
+    
+    <div class="actions-panel">
+        <button id="btn-reconnect" class="wp-block-button__link">Reconectar</button>
+        <button id="btn-refresh" class="wp-block-button__link">Actualizar datos</button>
+    </div>
+</div>
+
+<script>
+    // Configuración
+    const REMOTE_WS_URL = 'ws://[IP-DEL-SERVIDOR-REMOTO]:8000/ws/test/'; // Cambiar por la IP y puerto correctos
+    const RECONNECT_TIMEOUT = 3000; 
+    const HEARTBEAT_INTERVAL = 15000;
+
+    let socket;
+    let heartbeatTimer;
+    let reconnectTimer;
+    let isConnecting = false;
+    
+    // Elemento donde mostraremos los datos
+    const remoteCarrerasList = document.getElementById('remote-carreras');
+    const connectionStatus = document.getElementById('connection-status');
+    const btnReconnect = document.getElementById('btn-reconnect');
+    
+    // Función para conectar el WebSocket
+    function connectWebSocket() {
+        if (isConnecting) return;
+        
+        isConnecting = true;
+        clearTimeout(reconnectTimer);
+        
+        updateStatus("Conectando...", "connecting");
+        socket = new WebSocket(REMOTE_WS_URL);
+        
+        socket.onopen = function() {
+            console.log('WebSocket conectado al servidor remoto');
+            isConnecting = false;
+            updateStatus("Conectado", "connected");
+            
+            // Iniciar heartbeat para mantener la conexión viva
+            startHeartbeat();
+        };
+        
+        socket.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                
+                // Manejar respuesta de heartbeat
+                if (data.type === 'heartbeat_response') {
+                    if (socket.heartbeatTimeout) {
+                        clearTimeout(socket.heartbeatTimeout);
+                        socket.heartbeatTimeout = null;
+                    }
+                    return;
+                }
+                
+                // Procesar los datos recibidos
+                if (data.message && Array.isArray(data.message)) {
+                    renderRemoteData(data.message);
+                } else if (data.error) {
+                    showNotification("Error", data.error);
+                }
+            } catch (error) {
+                console.error('Error procesando mensaje:', error);
+            }
+        };
+        
+        socket.onclose = function(event) {
+            console.log('WebSocket desconectado - Código:', event.code);
+            isConnecting = false;
+            clearInterval(heartbeatTimer);
+            updateStatus("Desconectado", "disconnected");
+            
+            // Reconectar automáticamente
+            reconnectTimer = setTimeout(connectWebSocket, RECONNECT_TIMEOUT);
+        };
+        
+        socket.onerror = function(error) {
+            console.error('Error de WebSocket:', error);
+            updateStatus("Error", "error");
+        };
+    }
+    
+    function startHeartbeat() {
+        clearInterval(heartbeatTimer);
+        heartbeatTimer = setInterval(function() {
+            if (socket.readyState === WebSocket.OPEN) {
+                socket.send(JSON.stringify({
+                    "type": "heartbeat",
+                    "client_timestamp": new Date().toISOString()
+                }));
+                
+                // Timeout para verificar respuesta
+                const heartbeatTimeout = setTimeout(function() {
+                    socket.close();
+                }, 5000);
+                
+                socket.heartbeatTimeout = heartbeatTimeout;
+            }
+        }, HEARTBEAT_INTERVAL);
+    }
+    
+    function renderRemoteData(items) {
+        // Limpiar la lista
+        remoteCarrerasList.innerHTML = '';
+        
+        if (items.length === 0) {
+            remoteCarrerasList.innerHTML = '<li>No hay datos disponibles</li>';
+            return;
+        }
+        
+        // Añadir cada elemento a la lista
+        items.forEach(item => {
+            // Asumiendo que los datos tienen nombre e id, ajustar según la estructura real
+            const li = document.createElement('li');
+            li.className = 'remote-item';
+            li.innerHTML = `${item.nombre} <span class="id-badge">#${item.id}</span>`;
+            remoteCarrerasList.appendChild(li);
+        });
+    }
+    
+    function updateStatus(text, className) {
+        connectionStatus.textContent = text;
+        connectionStatus.className = 'badge ' + className;
+    }
+    
+    function showNotification(title, message) {
+        const notification = document.createElement('div');
+        notification.className = 'websocket-notification';
+        notification.style.position = 'fixed';
+        notification.style.bottom = '20px';
+        notification.style.right = '20px';
+        notification.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        notification.style.color = 'white';
+        notification.style.padding = '15px';
+        notification.style.borderRadius = '5px';
+        notification.style.zIndex = '1000';
+        notification.style.maxWidth = '300px';
+        notification.innerHTML = `<strong>${title}</strong><br>${message}`;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 5000);
+    }
+    
+    // Evento para el botón de reconexión
+    btnReconnect.addEventListener('click', function() {
+        if (socket) socket.close();
+        connectWebSocket();
+    });
+    
+    // Evento para el botón de actualizar datos
+    document.getElementById('btn-refresh').addEventListener('click', function() {
+        if (socket && socket.readyState === WebSocket.OPEN) {
+            socket.send(JSON.stringify({
+                "type": "request_data",
+                "entity": "carreras"
+            }));
+        } else {
+            showNotification("Error", "No hay conexión activa con el servidor remoto");
+        }
+    });
+    
+    // Iniciar conexión al cargar la página
+    window.addEventListener('DOMContentLoaded', connectWebSocket);
+    
+    // Reconectar cuando la página vuelve a tener foco
+    window.addEventListener('focus', function() {
+        if (socket && socket.readyState !== WebSocket.OPEN && !isConnecting) {
+            connectWebSocket();
+        }
+    });
+</script>
+
+<style>
+    .badge {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    .badge.disconnected { background-color: #ff5252; color: white; }
+    .badge.connecting { background-color: #ffb74d; color: black; }
+    .badge.connected { background-color: #66bb6a; color: white; }
+    .badge.error { background-color: #d32f2f; color: white; }
+    
+    .remote-status-indicator {
+        margin-bottom: 20px;
+    }
+    
+    .panel {
+        background-color: #f5f5f5;
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .actions-panel {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    #remote-carreras {
+        min-height: 100px;
+    }
+    
+    .remote-item {
+        padding: 10px 0;
+        border-bottom: 1px solid #e0e0e0;
+    }
+    
+    .id-badge {
+        background-color: #e0e0e0;
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+        color: #616161;
+    }
+    
+    .loading-placeholder {
+        color: #9e9e9e;
+        font-style: italic;
+    }
+</style>
+{% endblock %}

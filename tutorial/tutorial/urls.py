@@ -17,7 +17,9 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path
 from tutorial import view
-from tutorial.view import HomePageView, AboutPageView, CarreraCreateViewPage, CarreraEditarViewPage, AuthorCreateViewPage, AuthorDeleteViewPage, AuthorEditarViewPage, LibroCreateViewPage, LibroDeleteViewPage, LibroEditarViewPage, UserCreateViewPage, UserDeleteViewPage, UserEditarViewPage, PrestamoCreateViewPage, PrestamoDeleteViewPage, PrestamoEditarViewPage, CategoriaCreateViewPage, CategoriaDeleteViewPage, CategoriaEditarViewPage, RegistroCreateViewPage
+from tutorial.view import (
+    HomePageView, AboutPageView, CarreraCreateViewPage, CarreraEditarViewPage, AuthorCreateViewPage, AuthorDeleteViewPage, AuthorEditarViewPage, LibroCreateViewPage, LibroDeleteViewPage, LibroEditarViewPage, UserCreateViewPage, UserDeleteViewPage, UserEditarViewPage, PrestamoCreateViewPage, PrestamoDeleteViewPage, PrestamoEditarViewPage, CategoriaCreateViewPage, CategoriaDeleteViewPage, CategoriaEditarViewPage, RegistroCreateViewPage, RemoteCarrerasView, MultipleRemoteDataView
+)
 from django.contrib.auth import views as auth_views
 
 
@@ -47,4 +49,6 @@ urlpatterns = [
     path('categoria/eliminar/<int:pk>/', CategoriaDeleteViewPage.as_view(), name='eliminar_categoria'),
     path('categoria/editar/<int:pk>/', CategoriaEditarViewPage.as_view(), name='editar_categoria'),
     path('registro/', RegistroCreateViewPage.as_view(), name='registro'),
+    path('remote-carreras/', RemoteCarrerasView.as_view(), name='remote_carreras'),
+    path('multiple-remote-data/', MultipleRemoteDataView.as_view(), name='multiple_remote_data'),
 ]

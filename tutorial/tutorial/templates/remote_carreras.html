@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container saaslauncher-fade-up" data-aos="fade-up">
+    <h1>Datos Remotos de Carreras</h1>
+    
+    <div class="connection-panel">
+        <div class="connection-item">
+            <h3>Estado de conexión:</h3>
+            <span id="carreras-status" class="badge disconnected">Desconectado</span>
+        </div>
+    </div>
+    
+    <div class="panels-container">
+        <div class="panel carrera-panel">
+            <h2>Carreras Remotas</h2>
+            <ul id="remote-carreras" class="wp-block-list is-style-list-style-check-circle">
+                <li class="loading-placeholder">Conectando con el servidor de carreras...</li>
+            </ul>
+            <div class="actions-panel">
+                <button id="btn-reconnect-carreras" class="wp-block-button__link">Reconectar</button>
+                <button id="btn-refresh-carreras" class="wp-block-button__link">Actualizar datos</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Configuración
+    // Usa la ruta ws/somepath/ como se indica en el proyecto remoto
+    const CARRERAS_WS_URL = 'ws://192.168.1.71:8000/ws/somepath/';
+    const RECONNECT_TIMEOUT = 3000; 
+    const HEARTBEAT_INTERVAL = 15000;
+
+    // Variables de conexión para carreras
+    let carrerasSocket;
+    let carrerasHeartbeatTimer;
+    let carrerasReconnectTimer;
+    let isConnectingCarreras = false;
+    
+    // Elementos DOM
+    const remoteCarrerasList = document.getElementById('remote-carreras');
+    const carrerasStatus = document.getElementById('carreras-status');
+    const btnReconnectCarreras = document.getElementById('btn-reconnect-carreras');
+    const btnRefreshCarreras = document.getElementById('btn-refresh-carreras');
+    
+    // FUNCIONES PARA EL WEBSOCKET DE CARRERAS
+    
+    function connectCarrerasWebSocket() {
+        if (isConnectingCarreras) return;
+        
+        isConnectingCarreras = true;
+        clearTimeout(carrerasReconnectTimer);
+        
+        updateCarrerasStatus("Conectando...", "connecting");
+        carrerasSocket = new WebSocket(CARRERAS_WS_URL);
+        
+        carrerasSocket.onopen = function() {
+            console.log('WebSocket conectado al servidor de carreras');
+            isConnectingCarreras = false;
+            updateCarrerasStatus("Conectado", "connected");
+            
+            startCarrerasHeartbeat();
+            
+            // Solicitar datos inmediatamente al conectar
+            requestCarrerasData();
+        };
+        
+        carrerasSocket.onmessage = function(event) {
+            try {
+                const data = JSON.parse(event.data);
+                console.log('Datos recibidos del servidor de carreras:', data);
+                
+                // Manejar respuesta de heartbeat
+                if (data.type === 'heartbeat_response') {
+                    if (carrerasSocket.heartbeatTimeout) {
+                        clearTimeout(carrerasSocket.heartbeatTimeout);
+                        carrerasSocket.heartbeatTimeout = null;
+                    }
+                    return;
+                }
+                
+                // Procesar listado de carreras
+                if (data.type === 'carrera_list' && data.message && Array.isArray(data.message)) {
+                    renderCarrerasData(data.message);
+                    console.log('Lista de carreras recibida:', data.message);
+                } else if (data.error) {
+                    showNotification("Error en Carreras", data.error);
+                }
+            } catch (error) {
+                console.error('Error procesando mensaje de carreras:', error);
+            }
+        };
+        
+        carrerasSocket.onclose = function(event) {
+            console.log('WebSocket de carreras desconectado - Código:', event.code);
+            isConnectingCarreras = false;
+            clearInterval(carrerasHeartbeatTimer);
+            updateCarrerasStatus("Desconectado", "disconnected");
+            
+            carrerasReconnectTimer = setTimeout(connectCarrerasWebSocket, RECONNECT_TIMEOUT);
+        };
+        
+        carrerasSocket.onerror = function(error) {
+            console.error('Error de WebSocket de carreras:', error);
+            updateCarrerasStatus("Error", "error");
+        };
+    }
+    
+    function startCarrerasHeartbeat() {
+        clearInterval(carrerasHeartbeatTimer);
+        carrerasHeartbeatTimer = setInterval(function() {
+            if (carrerasSocket.readyState === WebSocket.OPEN) {
+                carrerasSocket.send(JSON.stringify({
+                    "type": "heartbeat",
+                    "client_timestamp": new Date().toISOString()
+                }));
+                
+                const heartbeatTimeout = setTimeout(function() {
+                    carrerasSocket.close();
+                }, 5000);
+                
+                carrerasSocket.heartbeatTimeout = heartbeatTimeout;
+            }
+        }, HEARTBEAT_INTERVAL);
+    }
+    
+    function requestCarrerasData() {
+        if (carrerasSocket && carrerasSocket.readyState === WebSocket.OPEN) {
+            // Nota que esto podría necesitar ajustes dependiendo de lo que espera el servidor remoto
+            carrerasSocket.send(JSON.stringify({
+                "type": "request_data",
+                "entity": "carreras"
+            }));
+        } else {
+            showNotification("Error", "No hay conexión con el servidor de carreras");
+            connectCarrerasWebSocket(); // Intentar reconectar automáticamente
+        }
+    }
+    
+    function renderCarrerasData(items) {
+        remoteCarrerasList.innerHTML = '';
+        
+        if (!items || items.length === 0) {
+            remoteCarrerasList.innerHTML = '<li>No hay carreras disponibles</li>';
+            return;
+        }
+        
+        items.forEach(item => {
+            const li = document.createElement('li');
+            li.className = 'remote-item';
+            
+            // Adaptar para manejar tanto name/description como nombre/descripcion
+            const nombre = item.nombre || item.name;
+            const descripcion = item.descripcion || item.description || '';
+            
+            li.innerHTML = `
+                <div class="carrera-header">
+                    <span class="carrera-nombre">${nombre}</span>
+                    <span class="id-badge">#${item.id}</span>
+                </div>
+            `;
+            
+            if (descripcion) {
+                li.innerHTML += `<div class="carrera-descripcion">${descripcion}</div>`;
+            }
+            
+            remoteCarrerasList.appendChild(li);
+        });
+    }
+    
+    function updateCarrerasStatus(text, className) {
+        carrerasStatus.textContent = text;
+        carrerasStatus.className = 'badge ' + className;
+    }
+    
+    function showNotification(title, message) {
+        const notification = document.createElement('div');
+        notification.className = 'websocket-notification';
+        notification.style.position = 'fixed';
+        notification.style.bottom = '20px';
+        notification.style.right = '20px';
+        notification.style.backgroundColor = 'rgba(0, 0, 0, 0.8)';
+        notification.style.color = 'white';
+        notification.style.padding = '15px';
+        notification.style.borderRadius = '5px';
+        notification.style.zIndex = '1000';
+        notification.style.maxWidth = '300px';
+        notification.innerHTML = `<strong>${title}</strong><br>${message}`;
+        
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.opacity = '0';
+            notification.style.transition = 'opacity 0.5s';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 500);
+        }, 5000);
+    }
+    
+    // EVENT LISTENERS
+    
+    btnReconnectCarreras.addEventListener('click', function() {
+        if (carrerasSocket) carrerasSocket.close();
+        connectCarrerasWebSocket();
+    });
+    
+    btnRefreshCarreras.addEventListener('click', function() {
+        requestCarrerasData();
+    });
+    
+    // INICIAR CONEXIONES
+    
+    window.addEventListener('DOMContentLoaded', function() {
+        connectCarrerasWebSocket();
+    });
+    
+    // Reconectar cuando la página vuelve a tener foco
+    window.addEventListener('focus', function() {
+        if (!isConnectingCarreras && (!carrerasSocket || carrerasSocket.readyState !== WebSocket.OPEN)) {
+            connectCarrerasWebSocket();
+        }
+    });
+</script>
+
+<style>
+    .connection-panel {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 20px;
+        background: rgba(0, 0, 0, 0.2);
+        padding: 15px;
+        border-radius: 5px;
+    }
+    
+    .connection-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .badge {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: bold;
+    }
+    
+    .badge.disconnected { background-color: #ff5252; color: white; }
+    .badge.connecting { background-color: #ffb74d; color: black; }
+    .badge.connected { background-color: #66bb6a; color: white; }
+    .badge.error { background-color: #d32f2f; color: white; }
+    
+    .panels-container {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+    
+    .panel {
+        flex: 1;
+        min-width: 300px;
+        background-color: rgba(0, 0, 0, 0.4);
+        border-radius: 5px;
+        padding: 20px;
+        margin-bottom: 20px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    .actions-panel {
+        display: flex;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    
+    #remote-carreras {
+        min-height: 100px;
+    }
+    
+    .remote-item {
+        padding: 10px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    
+    .carrera-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    .carrera-nombre {
+        font-weight: bold;
+        font-size: 1.1em;
+    }
+    
+    .id-badge {
+        background-color: rgba(255, 255, 255, 0.1);
+        padding: 2px 6px;
+        border-radius: 3px;
+        font-size: 12px;
+        color: rgba(255, 255, 255, 0.7);
+    }
+    
+    .carrera-descripcion {
+        margin-top: 5px;
+        font-size: 0.9em;
+        color: rgba(255, 255, 255, 0.7);
+        font-style: italic;
+    }
+    
+    .loading-placeholder {
+        color: rgba(255, 255, 255, 0.5);
+        font-style: italic;
+    }
+</style>
+{% endblock %}

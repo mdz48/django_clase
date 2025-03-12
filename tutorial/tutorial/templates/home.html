@@ -227,7 +227,7 @@
     // Configuración
     const WS_URL = 'ws://' + window.location.host + '/ws/test/';
     const RECONNECT_TIMEOUT = 3000; // Tiempo en ms para intentar reconectar
-    const HEARTBEAT_INTERVAL = 30000; // Cada 30 segundos enviamos un ping
+    const HEARTBEAT_INTERVAL = 15000; // Reducir a 15 segundos en lugar de 30
 
     let socket;
     let heartbeatTimer;
@@ -252,27 +252,46 @@
             startHeartbeat();
         };
         
+        // Añadir manejo específico para respuestas de heartbeat
         socket.onmessage = function(event) {
-            // Procesar el mensaje recibido
             try {
                 const data = JSON.parse(event.data);
                 
-                // Manejar datos iniciales de carrera
-                if (data.message && Array.isArray(data.message)) {
-                    data.message.forEach(element => {
-                        console.log('Dato recibido: ' + element.nombre);
-                    });
+                // Cancelar timeout de heartbeat si recibimos respuesta
+                if (data.type === 'heartbeat_response') {
+                    console.log('Heartbeat confirmado por servidor:', data.timestamp);
+                    if (socket.heartbeatTimeout) {
+                        clearTimeout(socket.heartbeatTimeout);
+                        socket.heartbeatTimeout = null;
+                    }
+                    return;
                 }
                 
-                // AÑADE ESTO - Manejar notificaciones de eventos
-                if (data.event_type === "libro_creado") {
-                    console.log('🎉 NUEVO LIBRO CREADO!');
-                    console.log(`Título: ${data.libro.titulo}`);
-                    console.log(`Autor: ${data.libro.autor}`);
-                    console.log(`Fecha: ${data.libro.fecha}`);
+                // Resto del código para manejar mensajes...
+                // [mantén tu código existente aquí]
+                // Procesar el mensaje recibido
+                try {
+                    const data = JSON.parse(event.data);
                     
-                    // Mostrar notificación visual
-                    showNotification('Nuevo libro', `Se ha añadido "${data.libro.titulo}" a la biblioteca`);
+                    // Manejar datos iniciales de carrera
+                    if (data.message && Array.isArray(data.message)) {
+                        data.message.forEach(element => {
+                            console.log('Dato recibido: ' + element.nombre);
+                        });
+                    }
+                    
+                    // AÑADE ESTO - Manejar notificaciones de eventos
+                    if (data.event_type === "libro_creado") {
+                        console.log('🎉 NUEVO LIBRO CREADO!');
+                        console.log(`Título: ${data.libro.titulo}`);
+                        console.log(`Autor: ${data.libro.autor}`);
+                        console.log(`Fecha: ${data.libro.fecha}`);
+                        
+                        // Mostrar notificación visual
+                        showNotification('Nuevo libro', `Se ha añadido "${data.libro.titulo}" a la biblioteca`);
+                    }
+                } catch (error) {
+                    console.error('Error procesando mensaje:', error);
                 }
             } catch (error) {
                 console.error('Error procesando mensaje:', error);
@@ -322,13 +341,25 @@
         };
     }
     
-    // Función para enviar heartbeats periódicos
+    // Reemplazar la función de heartbeat con esta versión mejorada
     function startHeartbeat() {
         clearInterval(heartbeatTimer);
         heartbeatTimer = setInterval(function() {
             if (socket.readyState === WebSocket.OPEN) {
                 console.log('Enviando heartbeat...');
-                socket.send(JSON.stringify({"type": "heartbeat"}));
+                socket.send(JSON.stringify({
+                    "type": "heartbeat",
+                    "client_timestamp": new Date().toISOString()
+                }));
+                
+                // Establecer un timeout para verificar respuesta
+                const heartbeatTimeout = setTimeout(function() {
+                    console.log('No se recibió respuesta al heartbeat, reconectando...');
+                    socket.close();  // Forzar cierre para reconexión
+                }, 5000);  // Esperar 5 segundos por respuesta
+                
+                // Almacenar el timeout para cancelarlo cuando llegue respuesta
+                socket.heartbeatTimeout = heartbeatTimeout;
             }
         }, HEARTBEAT_INTERVAL);
     }

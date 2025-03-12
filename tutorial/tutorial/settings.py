@@ -79,6 +79,9 @@ ASGI_APPLICATION = 'tutorial.asgi.application'
 CHANNEL_LAYERS = {
     "default": {
         "BACKEND": "channels.layers.InMemoryChannelLayer",
+        "CONFIG": {
+            "expiry": 3600,  # Tiempo en segundos antes de que expire un mensaje
+        },
     },
 }
 
@@ -142,3 +145,5 @@ STATICFILES_DIRS = [
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+ASGI_TIMEOUT = 300  # 5 minutos en segundos

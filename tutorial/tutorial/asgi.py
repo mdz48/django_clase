@@ -14,18 +14,22 @@ https://docs.djangoproject.com/en/5.1/howto/deployment/asgi/
 
 import os
 import django
+from django.core.asgi import get_asgi_application
+from channels.routing import ProtocolTypeRouter, URLRouter
+from channels.auth import AuthMiddlewareStack
+
+# Configura explícitamente la variable de entorno
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'tutorial.settings')
 django.setup()
-from channels.routing import ProtocolTypeRouter,URLRouter
-from django.core.asgi import get_asgi_application
-from .router_socket import websocket_urlpatterns
 
+# Importa después de configurar Django
+from tutorial import routingsocket
 
-
-django_asgi_app = get_asgi_application()
-
-# esta es la llamada al ASGI callable
 application = ProtocolTypeRouter({
-    "http": django_asgi_app,
-    "websocket": URLRouter(websocket_urlpatterns),
+    "http": get_asgi_application(),
+    "websocket": AuthMiddlewareStack(
+        URLRouter(
+            routingsocket.websocket_urlpatterns
+        )
+    ),
 })
